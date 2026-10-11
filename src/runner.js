@@ -1,5 +1,6 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { makeAdapter } from './adapters/index.js';
 import { writeReport } from './report.js';
 
@@ -14,11 +15,17 @@ export async function executeStep(driver, step, artifactDir, prefix) {
     case 'fill': return driver.fill(step.selector, step.text, timeout);
     case 'expectText': {
       const actual = await driver.text(step.selector, timeout);
-      if (!actual.includes(step.text)) throw new Error(`Expected ${JSON.stringify(step.selector)} to contain ${JSON.stringify(step.text)}; received ${JSON.stringify(actual.slice(0, 300))}`);
+      if (!actual.includes(step.text)) throw new Error(`Expected text assertion failed at ${JSON.stringify(step.selector)}: expected substring ${JSON.stringify(step.text.slice(0, 100))}; actual ${JSON.stringify(actual.slice(0, 300))}`);
+      return;
+    }
+    case 'expectValue': {
+      const actual = await driver.value(step.selector, timeout);
+      if (actual !== step.text) throw new Error(`Expected value assertion failed at ${JSON.stringify(step.selector)}: expected ${JSON.stringify(step.text.slice(0, 100))}; actual ${JSON.stringify(actual.slice(0, 100))}`);
       return;
     }
     case 'expectVisible': return driver.expectVisible(step.selector, true, timeout);
     case 'expectHidden': return driver.expectVisible(step.selector, false, timeout);
+    case 'press': return driver.press(step.key);
     case 'wait': return new Promise((resolve) => setTimeout(resolve, step.ms));
     case 'selectWindow': return driver.selectWindow(step.index);
     case 'screenshot': {
@@ -46,43 +53,38 @@ export async function runSuite(config, { outputDir = 'deske2e-results', adapterF
         const item = { action: step.action, selector: step.selector ?? null, status: 'passed' };
         result.steps.push(item);
         const prefix = `${i + 1}-${slug(scenario.name)}-${j + 1}`;
+        const start = performance.now();
         try {
           const artifact = await executeStep(adapter, step, artifacts, prefix);
           if (artifact) item.artifact = `artifacts/${artifact}`;
           onProgress(`  ✓ ${step.action}${step.selector ? ` ${step.selector}` : ''}`);
         } catch (error) {
-          result.status = 'failed';
-          item.status = 'failed';
-          item.error = messageOf(error);
-          result.error = item.error;
+          result.status = 'failed'; item.status = 'failed';
+          item.error = messageOf(error); result.error = item.error;
           onProgress(`  ✗ ${item.error}`);
           try {
             const filename = `${prefix}-failure.png`;
             await adapter.screenshot(path.join(artifacts, filename));
             result.failureScreenshot = `artifacts/${filename}`;
-          } catch (captureError) {
-            result.captureError = messageOf(captureError);
-          }
+          } catch (captureError) { result.captureError = messageOf(captureError); }
           break;
-        }
+        } finally { item.durationMs = Math.round(performance.now() - start); }
       }
     } catch (error) {
-      result.status = 'failed';
-      result.error = `Unable to start app: ${messageOf(error)}`;
+      result.status = 'failed'; result.error = `Unable to start app: ${messageOf(error)}`;
       onProgress(`  ✗ ${result.error}`);
     } finally {
       if (adapter) {
         try { await adapter.close(); }
-        catch (error) {
-          result.status = 'failed';
-          result.cleanupError = messageOf(error);
-        }
+        catch (error) { result.status = 'failed'; result.cleanupError = messageOf(error); }
       }
       result.finishedAt = timestamp();
+      result.durationMs = Date.parse(result.finishedAt) - Date.parse(result.startedAt);
     }
   }
   const report = {
-    schemaVersion: 1, framework: config.framework, startedAt, finishedAt: timestamp(),
+    schemaVersion: 1, framework: config.framework, platform: process.platform, arch: process.arch,
+    nodeVersion: process.version, hostname: os.hostname(), startedAt, finishedAt: timestamp(),
     summary: { passed: results.filter((r) => r.status === 'passed').length, failed: results.filter((r) => r.status === 'failed').length },
     scenarios: results,
   };

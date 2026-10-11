@@ -17,3 +17,12 @@ test('resolves executable and cwd from config file directory', async () => {
  try { const c = config(); c.app.cwd = '.'; await writeFile(path.join(tmp, 'config.json'), JSON.stringify(c)); const result = await loadConfig(path.join(tmp, 'config.json')); assert.equal(result.app.executablePath, path.join(tmp, 'electron')); assert.equal(result.app.cwd, tmp); }
  finally { await rm(tmp, { recursive: true, force: true }); }
 });
+test('rejects typos, duplicate scenarios and unsafe selector values', () => {
+ const c=config(); c.scenarios[0].steps[0].typo=true;
+ assert.throws(()=>validateConfig(c), /unknown property/);
+ delete c.scenarios[0].steps[0].typo;
+ c.scenarios.push({...c.scenarios[0]});
+ assert.throws(()=>validateConfig(c), /duplicate scenario/);
+ c.scenarios.pop();c.scenarios[0].steps=[{action:'fill',selector:'testid:foo"]',text:'abc'}];
+ assert.throws(()=>validateConfig(c),/Invalid testid/);
+});
