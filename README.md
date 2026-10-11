@@ -96,3 +96,16 @@ Contributions welcome: focus areas are stable accessibility selectors, native di
 ## License
 
 Apache-2.0, see [LICENSE](LICENSE).
+
+## Real Electron smoke fixture
+
+The repository includes a minimal Electron application under `fixtures/electron-smoke/` and a CI workflow that runs DeskE2E against its **actual window**, not a mocked adapter. On a Linux desktop with `xvfb` and Electron installed:
+
+```bash
+npm install --no-save playwright electron
+xvfb-run -a node ./bin/deske2e.js run \
+  --config examples/electron-smoke.json \
+  --output deske2e-results
+```
+
+See `.github/workflows/electron-smoke.yml` for automated validation on pull requests. This verifies Electron only, not Tauri or native dialogs.

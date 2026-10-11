@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "framework": "electron",
+  "app": {
+    "executablePath": "../node_modules/.bin/electron",
+    "args": ["fixtures/electron-smoke/main.cjs"],
+    "cwd": "..",
+    "timeoutMs": 60000
+  },
+  "scenarios": [
+    {
+      "name": "Fill and persist UI state",
+      "steps": [
+        { "action": "expectVisible", "selector": "[data-testid='name']" },
+        { "action": "fill", "selector": "[data-testid='name']", "text": "Desktop QA" },
+        { "action": "click", "selector": "[data-testid='save']" },
+        { "action": "expectText", "selector": "[data-testid='status']", "text": "Saved: Desktop QA" },
+        { "action": "screenshot", "name": "passed" }
+      ]
+    }
+  ]
+}
