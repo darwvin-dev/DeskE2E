@@ -1,0 +1,25 @@
+name: Electron E2E smoke
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  electron-smoke:
+    name: Launch and test real Electron window (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        run: npm install --no-save playwright electron
+      - name: Run app in X virtual framebuffer
+        run: xvfb-run -a node ./bin/deske2e.js run --config examples/electron-smoke.json --output deske2e-results
+      - name: Upload failure evidence and HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deske2e-electron-smoke
+          path: deske2e-results/
+          if-no-files-found: ignore
