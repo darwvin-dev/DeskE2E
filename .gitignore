@@ -1,0 +1,6 @@
+node_modules/
+deske2e-results/
+coverage/
+*.log
+.DS_Store
+.env

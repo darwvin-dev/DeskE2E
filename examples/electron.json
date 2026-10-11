@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "framework": "electron",
+  "app": { "executablePath": "../node_modules/.bin/electron", "args": ["."], "cwd": ".." },
+  "scenarios": [
+    { "name": "Window is ready", "steps": [
+      { "action": "expectVisible", "selector": "body" },
+      { "action": "expectText", "selector": "body", "text": "Welcome" },
+      { "action": "screenshot", "name": "first-window" }
+    ] }
+  ]
+}

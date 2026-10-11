@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "framework": "tauri",
+  "app": { "executablePath": "../src-tauri/target/release/my-app", "args": [], "driverProvider": "embedded" },
+  "scenarios": [
+    { "name": "Window and settings", "steps": [
+      { "action": "expectVisible", "selector": "body" },
+      { "action": "click", "selector": "[data-testid='settings-button']" },
+      { "action": "expectVisible", "selector": "[data-testid='settings-page']" },
+      { "action": "screenshot", "name": "settings" }
+    ] }
+  ]
+}
