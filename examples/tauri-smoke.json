@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "framework": "tauri",
+  "app": {
+    "executablePath": "../fixtures/tauri-smoke/src-tauri/target/release/deske2e-tauri-fixture",
+    "driverProvider": "embedded",
+    "cwd": "..",
+    "timeoutMs": 60000
+  },
+  "scenarios": [{
+    "name": "Tauri window fills and saves",
+    "steps": [
+      { "action": "expectVisible", "selector": "testid:heading" },
+      { "action": "fill", "selector": "testid:name", "text": "DeskE2E" },
+      { "action": "expectValue", "selector": "testid:name", "text": "DeskE2E" },
+      { "action": "click", "selector": "testid:save" },
+      { "action": "expectText", "selector": "testid:status", "text": "Saved: DeskE2E" },
+      { "action": "screenshot", "name": "tauri-pass" }
+    ]
+  }]
+}

@@ -1,0 +1,35 @@
+name: Tauri smoke (opt-in)
+on:
+  workflow_dispatch:
+  # This is opt-in until the native dependencies and CI matrix are validated.
+jobs:
+  tauri-linux:
+    name: Build a real Tauri window and run DeskE2E (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fixtures/tauri-smoke/src-tauri
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf pkg-config
+      - name: Install Tauri driver
+        run: npm install --no-save @wdio/tauri-service
+      - name: Build smoke fixture with test-only WebDriver plugin
+        working-directory: fixtures/tauri-smoke/src-tauri
+        run: cargo build --release --features webdriver
+      - name: Run real Tauri E2E under Xvfb
+        run: xvfb-run -a node bin/deske2e.js run --config examples/tauri-smoke.json --output deske2e-results/tauri
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tauri-smoke-artifacts
+          path: deske2e-results/tauri/
+          if-no-files-found: ignore

@@ -45,3 +45,17 @@ test('escapes untrusted test output in HTML',()=>{
  assert.doesNotMatch(html,/<script>alert\(1\)/);
  assert.match(html,/&lt;img src=x&gt;/);
 });
+test('runs expected input values and keyboard shortcuts', async () => {
+ const dir = await mkdtemp(path.join(os.tmpdir(), 'deske2e-key-'));
+ const presses = [];
+ try {
+  const { report }=await runSuite({framework:'electron',scenarios:[{name:'input',steps:[
+   {action:'expectValue',selector:'testid:username',text:'alice'},
+   {action:'press',key:'Control+A'}
+  ]}]},{outputDir:dir,adapterFactory:async()=>({value:async()=> 'alice',press:async key=>presses.push(key),close:async()=>{}})});
+  assert.equal(report.summary.passed,1);
+  assert.deepEqual(presses,['Control+A']);
+  assert.equal(report.scenarios[0].steps.length,2);
+  assert.ok(report.scenarios[0].steps.every(x=>x.durationMs>=0));
+ } finally { await rm(dir,{recursive:true,force:true}); }
+});

@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>DeskE2E Tauri Smoke</title>
+<style>body{font:16px system-ui,sans-serif;padding:30px;max-width:650px;margin:auto}input,button{padding:10px;margin:6px}</style></head>
+<body><h1 data-testid="heading">Tauri smoke fixture</h1><label for="name">Name</label>
+<input id="name" data-testid="name"><button data-testid="save">Save</button>
+<p role="status" data-testid="status">Not saved</p>
+<script>document.querySelector('[data-testid="save"]').addEventListener('click',()=>{document.querySelector('[data-testid="status"]').textContent='Saved: '+document.querySelector('[data-testid="name"]').value;});</script>
+</body></html>

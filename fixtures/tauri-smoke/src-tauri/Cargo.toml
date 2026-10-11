@@ -1,0 +1,15 @@
+[package]
+name = "deske2e-tauri-fixture"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[features]
+webdriver = ["dep:tauri-plugin-wdio-webdriver"]
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-wdio-webdriver = { version = "0.2", optional = true }
+
+[build-dependencies]
+tauri-build = { version = "2" }
